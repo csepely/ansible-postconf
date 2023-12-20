@@ -74,7 +74,7 @@ def test_var(module, postconf_path, postconf_arg):
     else:
         postconf_arg += " -H"
     rc, out, err  = module.run_command("%s %s %s" % (postconf_path, postconf_arg, module.params["name"]))
-    if rc != 0:
+    if rc != 0 or len(err) > 0:
         return False
 
     return True
