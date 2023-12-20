@@ -71,7 +71,7 @@ def test_var(module, postconf_path, postconf_arg):
         postconf_arg += " -M"
     elif module.params["configuration"] == "master/service/parameters" :
         postconf_arg += " -P -H"
-    else
+    else:
         postconf_arg += " -H"
     rc, out, err  = module.run_command("%s %s %s" % (postconf_path, postconf_arg, module.params["name"]))
     if rc != 0:
@@ -86,7 +86,7 @@ def query_var(module, postconf_path, postconf_arg):
         service_entry = True
     elif module.params["configuration"] == "master/service/parameters" :
         postconf_arg += " -P -h"
-    else
+    else:
         postconf_arg += " -h"
 
     rc, out, err  = module.run_command("%s %s %s" % (postconf_path, postconf_arg, module.params["name"]))
@@ -94,7 +94,8 @@ def query_var(module, postconf_path, postconf_arg):
     if rc != 0:
         return False
 
-    if (service_entry ? ' '.join(out.rstrip().split()) : out.rstrip()) != module.params["value"]:
+    m = ' '.join(out.rstrip().split()) if service_entry else out.rstrip()
+    if (m != module.params["value"]:
         return False
 
     return True
@@ -121,7 +122,7 @@ def remove_value(module, postconf_path, postconf_arg):
             postconf_arg += " -MX"
         elif module.params["configuration"] == "master/service/parameters" :
             postconf_arg += " -PX"
-        else
+        else:
             postconf_arg += " -X"
         rc, out, err = module.run_command("%s %s %s" % (postconf_path, postconf_arg, module.params["name"]))
         if rc == 0:
