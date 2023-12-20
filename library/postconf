@@ -67,9 +67,9 @@ EXAMPLES = '''
 from ansible.module_utils.basic import AnsibleModule
 
 def test_var(module, postconf_path, postconf_arg):
-    if module.params["configuration"] == "master/service/entries" :
+    if module.params["configuration"] == "master/service/entries":
         postconf_arg += " -M"
-    elif module.params["configuration"] == "master/service/parameters" :
+    elif module.params["configuration"] == "master/service/parameters":
         postconf_arg += " -P -H"
     else:
         postconf_arg += " -H"
@@ -81,10 +81,10 @@ def test_var(module, postconf_path, postconf_arg):
 
 def query_var(module, postconf_path, postconf_arg):
     service_entry = False
-    if module.params["configuration"] == "master/service/entries" :
-        postconf_arg += " -M"
+    if module.params["configuration"] == "master/service/entries":
+        postconf_arg += " -Mf"
         service_entry = True
-    elif module.params["configuration"] == "master/service/parameters" :
+    elif module.params["configuration"] == "master/service/parameters":
         postconf_arg += " -P -h"
     else:
         postconf_arg += " -h"
@@ -94,8 +94,8 @@ def query_var(module, postconf_path, postconf_arg):
     if rc != 0:
         return False
 
-    m = ' '.join(out.rstrip().split()) if service_entry else out.rstrip()
-    if (m != module.params["value"]:
+    m = ' '.join(out.split("\n")[0].rstrip().split()) if service_entry else out.rstrip()
+    if m != module.params["value"]:
         return False
 
     return True
@@ -105,9 +105,9 @@ def set_value(module, postconf_path, postconf_arg):
     if query_var(module, postconf_path, postconf_arg):
         return (False, "The variable already set in value %s" % module.params["value"])
 
-    if module.params["configuration"] == "master/service/entries" :
+    if module.params["configuration"] == "master/service/entries":
         postconf_arg += " -M"
-    elif module.params["configuration"] == "master/service/parameters" :
+    elif module.params["configuration"] == "master/service/parameters":
         postconf_arg += " -P"
 
     rc, out, err = module.run_command("%s %s %s=\"%s\"" % (postconf_path, postconf_arg, module.params["name"], module.params["value"]))
@@ -118,9 +118,9 @@ def set_value(module, postconf_path, postconf_arg):
 
 def remove_value(module, postconf_path, postconf_arg):
     if test_var(module, postconf_path, postconf_arg):
-        if module.params["configuration"] == "master/service/entries" :
+        if module.params["configuration"] == "master/service/entries":
             postconf_arg += " -MX"
-        elif module.params["configuration"] == "master/service/parameters" :
+        elif module.params["configuration"] == "master/service/parameters":
             postconf_arg += " -PX"
         else:
             postconf_arg += " -X"
@@ -150,7 +150,7 @@ def main():
     message = ''
     postconf_arg = ""
 
-    if p["value"] is None and p["state"] == "present" :
+    if p["value"] is None and p["state"] == "present":
         module.fail_json(msg="You must specify 'value' to setup variable")
 
     if p["state"] == "present":
