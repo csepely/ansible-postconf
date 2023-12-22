@@ -67,15 +67,24 @@ EXAMPLES = '''
 from ansible.module_utils.basic import AnsibleModule
 
 def test_var(module, postconf_path, postconf_arg):
+    default_out = ""
     if module.params["configuration"] == "master/service/entries":
-        postconf_arg += " -M"
+        postconf_arg += " -Mfx"
     elif module.params["configuration"] == "master/service/parameters":
         postconf_arg += " -P -H"
     else:
-        postconf_arg += " -H"
+        postconf_arg += " -dh"
+        rc, default_out, err = module.run_command("%s %s %s" % (postconf_path, postconf_arg, module.params["name"]))
+        postconf_arg = " -h"
     rc, out, err  = module.run_command("%s %s %s" % (postconf_path, postconf_arg, module.params["name"]))
-    if rc != 0 or len(err) > 0:
+    if rc != 0 or len(out) == 0:
         return False
+
+    if len(default_out) > 0 and len(out) > 0:
+        if default_out != out:
+            return True
+        elif default_out == out:
+            return False
 
     return True
 
