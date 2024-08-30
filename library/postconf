@@ -98,32 +98,43 @@ def query_var(module, postconf_path, postconf_arg):
     else:
         postconf_arg += " -h"
 
+    module.log(msg="query_var => postconf_path = %s, postconf_arg = %s, module.params = %s" % (postconf_path, postconf_arg, module.params))
     rc, out, err  = module.run_command("%s %s %s" % (postconf_path, postconf_arg, module.params["name"]))
 
     if rc != 0:
+        module.log(msg="query_var => rc != 0")
         return False
 
     m = ' '.join(out.split("\n")[0].rstrip().split()) if service_entry else out.rstrip()
     if m != module.params["value"]:
+        module.log(msg="query_var => m != value (m=%s, value=%s)" % (m, module.params["value"]))
+        module.log(msg="query_var => return False")
         return False
 
+    module.log(msg="query_var => return True")
     return True
 
 
 def set_value(module, postconf_path, postconf_arg):
     if query_var(module, postconf_path, postconf_arg):
-        return (False, "The variable already set in value %s" % module.params["value"])
+        module.log(msg="set_vaule = > already set...")
+        return (False, "The variable %s already set in value %s" % (module.params["name"], module.params["value"]))
 
     if module.params["configuration"] == "master/service/entries":
-        postconf_arg += " -M"
+        postconf_arg += " -M -e"
     elif module.params["configuration"] == "master/service/parameters":
-        postconf_arg += " -P"
+        postconf_arg += " -P -e"
+    else:
+        postconf_arg += " -e"
 
-    rc, out, err = module.run_command("%s %s %s=\"%s\"" % (postconf_path, postconf_arg, module.params["name"], module.params["value"]))
+    module.log(msg="set_value => postconf_path = %s, postconf_arg = %s, module.params = %s" % (postconf_path, postconf_arg, module.params))
+    rc, out, err = module.run_command("%s %s \"%s=%s\"" % (postconf_path, postconf_arg, module.params["name"], module.params["value"]))
     if rc != 0:
+        module.log(msg="set_value => rc != 0, out=(%s), err=(%s)" % (out, err))
         module.fail_json(msg="Could not set variable")
 
-    return (True, "Variable was set")
+    module.log(msg="set_value => return True, out=(%s), err=(%s)" % (out, err))
+    return (True, "Variable was set (%s = %s)" % (module.params["name"], module.params["value"]))
 
 def remove_value(module, postconf_path, postconf_arg):
     if test_var(module, postconf_path, postconf_arg):
@@ -167,7 +178,7 @@ def main():
     elif p["state"] == "absent":
         changed, msg = remove_value(module, postconf_path, postconf_arg)
 
-    module.exit_json(changed=changed, msg=', '.join(message))
+    module.exit_json(changed=changed, msg=msg)
 
 if __name__ == '__main__':
     main()
